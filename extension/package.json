@@ -1,0 +1,96 @@
+{
+  "name": "codetown-tracker",
+  "displayName": "CodeTown Tracker",
+  "description": "Privacy-respecting developer coding activity tracker for teams and individuals.",
+  "version": "1.0.0",
+  "publisher": "codetown",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codetown.showStatus",
+        "title": "CodeTown: Show Tracking Status"
+      },
+      {
+        "command": "codetown.toggleTracking",
+        "title": "CodeTown: Toggle Tracking"
+      },
+      {
+        "command": "codetown.resetConsent",
+        "title": "CodeTown: Reset Consent"
+      },
+      {
+        "command": "codetown.showOutput",
+        "title": "CodeTown: Show Live Event Log"
+      },
+      {
+        "command": "codetown.showRecentEvents",
+        "title": "CodeTown: Show Recent Events (from DB)"
+      }
+    ],
+    "configuration": {
+      "title": "CodeTown Tracker",
+      "properties": {
+        "codetown.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable activity tracking."
+        },
+        "codetown.serverUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Backend API URL for uploading events (must use HTTPS in production)."
+        },
+        "codetown.teamId": {
+          "type": "string",
+          "default": "",
+          "description": "Team identifier for grouping events."
+        },
+        "codetown.idleThreshold": {
+          "type": "number",
+          "default": 120,
+          "minimum": 10,
+          "description": "Seconds of inactivity before the user is considered idle."
+        },
+        "codetown.uploadInterval": {
+          "type": "number",
+          "default": 30,
+          "minimum": 5,
+          "description": "Seconds between upload attempts."
+        },
+        "codetown.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug logging to the developer console."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "lint": "eslint src/",
+    "package": "vsce package --no-dependencies",
+    "prepackage": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "sql.js": "^1.14.0"
+  }
+}
