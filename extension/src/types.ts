@@ -64,6 +64,7 @@ export interface UploadPayload {
 export interface CodetownConfig {
   enabled: boolean;
   serverUrl: string;
+  apiKey: string;
   teamId: string;
   idleThreshold: number;
   uploadInterval: number;

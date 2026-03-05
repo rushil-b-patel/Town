@@ -52,9 +52,9 @@ export class Uploader {
     this.uploading = true;
 
     try {
-      const serverUrl = getConfig().serverUrl;
-      if (!serverUrl) {
-        logger.debug('No serverUrl configured — skipping upload');
+      const { serverUrl, apiKey } = getConfig();
+      if (!serverUrl || !apiKey) {
+        logger.debug('No serverUrl or apiKey configured — skipping upload');
         return;
       }
 
@@ -64,7 +64,7 @@ export class Uploader {
       if (rows.length === 0) return;
 
       const events = rows.map(rowToEvent);
-      await this.postBatch(serverUrl, events);
+      await this.postBatch(serverUrl, apiKey, events);
 
       this.storage.markUploaded(events.map((e) => e.id));
       this.retryDelay = BASE_RETRY_DELAY_MS;
@@ -88,7 +88,7 @@ export class Uploader {
     }
   }
 
-  private async postBatch(serverUrl: string, events: ActivityEvent[]): Promise<void> {
+  private async postBatch(serverUrl: string, apiKey: string, events: ActivityEvent[]): Promise<void> {
     const url = buildUrl(serverUrl);
     const body = JSON.stringify({ events });
     const compressed = gzipSync(Buffer.from(body));
@@ -102,6 +102,7 @@ export class Uploader {
         headers: {
           'Content-Type': 'application/json',
           'Content-Encoding': 'gzip',
+          'X-API-Key': apiKey,
         },
         body: compressed,
         signal: controller.signal,

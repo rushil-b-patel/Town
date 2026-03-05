@@ -12,6 +12,7 @@ export function getConfig(): CodetownConfig {
   return {
     enabled: cfg.get<boolean>('enabled', true),
     serverUrl: cfg.get<string>('serverUrl', ''),
+    apiKey: cfg.get<string>('apiKey', ''),
     teamId: cfg.get<string>('teamId', ''),
     idleThreshold: cfg.get<number>('idleThreshold', 120),
     uploadInterval: cfg.get<number>('uploadInterval', 30),
