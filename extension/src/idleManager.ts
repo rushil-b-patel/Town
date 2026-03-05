@@ -16,7 +16,9 @@ export class IdleManager {
   private windowFocused: boolean = true;
   private hasActiveEditor: boolean = false;
 
-  /** Call on every user-initiated event (edit, save, focus, editor switch). */
+  /** Call on every user-initiated event
+   * (edit, save, focus, editor switch).
+   */
   recordActivity(): void {
     this.lastActivityTs = Date.now();
   }
@@ -36,6 +38,8 @@ export class IdleManager {
    * Returns true when the user should be considered idle.
    * Active time is only counted when:
    *   gap < threshold AND window focused AND editor is open.
+   *
+   * @returns boolean
    */
   isIdle(): boolean {
     const thresholdMs = getConfig().idleThreshold * 1000;

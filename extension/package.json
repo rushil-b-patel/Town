@@ -3,13 +3,22 @@
   "displayName": "CodeTown Tracker",
   "description": "Privacy-respecting developer coding activity tracker for teams and individuals.",
   "version": "1.0.0",
-  "publisher": "codetown",
+  "publisher": "Rushil Patel",
   "license": "MIT",
+  "homepage": "https://github.com/rushil-b-patel/Town/extension/README.md",
+  "bugs": {
+    "url": "https://github.com/rushil-b-patel/Town/issues",
+    "email": "rushil13579@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rushil-b-patel/Town.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages", "Visualization", "Other"
   ],
   "activationEvents": [
     "onStartupFinished"
@@ -30,12 +39,8 @@
         "title": "CodeTown: Reset Consent"
       },
       {
-        "command": "codetown.showOutput",
-        "title": "CodeTown: Show Live Event Log"
-      },
-      {
         "command": "codetown.showRecentEvents",
-        "title": "CodeTown: Show Recent Events (from DB)"
+        "title": "CodeTown: Show Recent Events"
       }
     ],
     "configuration": {

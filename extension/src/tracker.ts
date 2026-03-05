@@ -1,39 +1,33 @@
 import * as vscode from 'vscode';
 import { randomUUID } from 'node:crypto';
 import { sha256 } from './hash';
-import { ActivityEvent, EventType } from './types';
+import { ActivityEvent, DeveloperMode, EventType } from './types';
 import { IdleManager } from './idleManager';
 import { SessionManager } from './sessionManager';
+import { LearningDetector } from './learningDetector';
 import { EventQueue } from './eventQueue';
 import { Storage } from './storage';
 import { getConfig } from './config';
 import { logger } from './logger';
 
-/**
- * Minimum interval between persisted edit events for the same editing session.
- * Prevents flooding the queue during rapid typing while still capturing intent.
- */
 const EDIT_DEBOUNCE_MS = 2000;
 
 /**
- * Registers all VS Code workspace/window listeners and translates them
- * into normalized ActivityEvent objects.
+ * Registers VS Code workspace/window listeners and translates them
+ * into normalized, privacy-safe ActivityEvent objects.
  *
  * Privacy contract:
- * - File paths are SHA-256 hashed before leaving this module.
- * - No file content, names, or git metadata is ever captured.
- * - Repository roots are hashed identically so the backend can correlate
- *   events within a project without knowing which project it is.
+ *  - File paths → SHA-256 hash
+ *  - Repo roots → SHA-256 hash
+ *  - No file content, names, or git metadata ever captured
  */
-export type EventListener = (event: ActivityEvent) => void;
-
 export class Tracker {
   private disposables: vscode.Disposable[] = [];
   private editDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly userIdHash: string;
-  private eventListeners: EventListener[] = [];
-  private totalEventCount: number = 0;
-  private lastLanguage: string = 'none';
+  private readonly learningDetector: LearningDetector;
+  private totalEventCount = 0;
+  private lastLanguage = 'none';
 
   constructor(
     private readonly idleManager: IdleManager,
@@ -43,22 +37,9 @@ export class Tracker {
     userIdHash: string,
   ) {
     this.userIdHash = userIdHash;
+    this.learningDetector = new LearningDetector();
   }
 
-  /** Subscribe to every event the tracker produces. */
-  onEvent(listener: EventListener): void {
-    this.eventListeners.push(listener);
-  }
-
-  getTotalEventCount(): number {
-    return this.totalEventCount;
-  }
-
-  getLastLanguage(): string {
-    return this.lastLanguage;
-  }
-
-  /** Wire up all VS Code event subscriptions. */
   start(): void {
     this.disposables.push(
       vscode.workspace.onDidChangeTextDocument((e) => {
@@ -95,11 +76,22 @@ export class Tracker {
     logger.debug('Tracker started');
   }
 
-  /**
-   * Debounce rapid edit events. Only the trailing edge fires,
-   * so we capture that the user *was* editing without recording
-   * every keystroke.
-   */
+  getTotalEventCount(): number {
+    return this.totalEventCount;
+  }
+
+  getLastLanguage(): string {
+    return this.lastLanguage;
+  }
+
+  getDeveloperMode(): DeveloperMode {
+    return this.learningDetector.getMode();
+  }
+
+  getLearningDetector(): LearningDetector {
+    return this.learningDetector;
+  }
+
   private debouncedEdit(document: vscode.TextDocument): void {
     if (this.editDebounceTimer) {
       clearTimeout(this.editDebounceTimer);
@@ -116,6 +108,11 @@ export class Tracker {
     try {
       this.sessionManager.recordEvent();
 
+      const isIdle = this.idleManager.isIdle();
+      const fileHash = this.hashFilePath(document);
+
+      this.learningDetector.recordEvent(type, fileHash, isIdle);
+
       const event: ActivityEvent = {
         id: randomUUID(),
         session_id: this.sessionManager.getSessionId(),
@@ -125,8 +122,9 @@ export class Tracker {
         type,
         language: document?.languageId ?? 'unknown',
         repo_hash: this.hashRepoRoot(document),
-        file_hash: this.hashFilePath(document),
-        idle: this.idleManager.isIdle(),
+        file_hash: fileHash,
+        idle: isIdle,
+        mode: this.learningDetector.getMode(),
       };
 
       this.eventQueue.push(event);
@@ -135,13 +133,7 @@ export class Tracker {
       this.totalEventCount++;
       this.lastLanguage = event.language;
 
-      for (const listener of this.eventListeners) {
-        try { listener(event); } catch { /* listener must not break the tracker */ }
-      }
-
-      logger.debug(
-        `Event: type=${type} lang=${event.language} idle=${event.idle}`,
-      );
+      logger.debug(`Event: ${type} lang=${event.language} mode=${event.mode}`);
     } catch (err) {
       logger.error('Failed to emit event', err);
     }

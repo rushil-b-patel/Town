@@ -1,6 +1,5 @@
 import { randomUUID } from 'node:crypto';
 import { SprintInfo } from './types';
-import { logger } from './logger';
 
 /**
  * Session timeout: 30 minutes of inactivity rotates the session.
@@ -10,10 +9,10 @@ const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
 /**
  * Sprint detection constants.
- * A sprint is continuous activity >= 25 minutes with no idle gap > 60 seconds.
+ * A sprint is continuous activity >= 25 minutes with no idle gap > 120 seconds.
  */
 const SPRINT_MIN_DURATION_MS = 25 * 60 * 1000;
-const SPRINT_MAX_GAP_MS = 60 * 1000;
+const SPRINT_MAX_GAP_MS = 120 * 1000; // 2 minutes
 
 export class SessionManager {
   private sessionId: string;
@@ -30,7 +29,6 @@ export class SessionManager {
     this.sessionId = randomUUID();
     this.sessionStartTs = now;
     this.lastEventTs = now;
-    logger.debug(`Session created: ${this.sessionId.slice(0, 8)}...`);
   }
 
   /**
@@ -65,7 +63,6 @@ export class SessionManager {
       this.sessionId = randomUUID();
       this.sessionStartTs = Date.now();
       this.lastEventTs = Date.now();
-      logger.debug(`Session rotated: ${this.sessionId.slice(0, 8)}...`);
     }
   }
 
@@ -108,9 +105,6 @@ export class SessionManager {
         eventCount: this.sprintEventCount,
       };
       this.completedSprints.push(sprint);
-      logger.debug(
-        `Sprint completed: ${sprint.durationMinutes}min, ${sprint.eventCount} events`
-      );
     }
 
     this.sprintStartTs = null;

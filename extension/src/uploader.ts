@@ -159,5 +159,6 @@ function rowToEvent(row: StoredEventRow): ActivityEvent {
     repo_hash: row.repo_hash,
     file_hash: row.file_hash,
     idle: row.idle === 1,
+    mode: (row.mode as ActivityEvent['mode']) ?? 'coding',
   };
 }

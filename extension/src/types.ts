@@ -10,6 +10,15 @@ export type EventType =
   | 'active_editor_change';
 
 /**
+ * Behavioral mode inferred from recent activity patterns.
+ *
+ * coding   — actively writing/saving code in a focused set of files
+ * learning — browsing, exploring, reading (many file switches, few edits)
+ * idle     — no meaningful activity within the threshold window
+ */
+export type DeveloperMode = 'coding' | 'learning' | 'idle';
+
+/**
  * Core activity event — the unit of data collected by CodeTown.
  * All identifying fields are SHA-256 hashed before persistence.
  */
@@ -24,6 +33,7 @@ export interface ActivityEvent {
   repo_hash: string;
   file_hash: string;
   idle: boolean;
+  mode: DeveloperMode;
 }
 
 /**
@@ -41,6 +51,7 @@ export interface StoredEventRow {
   repo_hash: string;
   file_hash: string;
   idle: number;
+  mode: string;
   uploaded: number;
 }
 
@@ -65,4 +76,14 @@ export interface SprintInfo {
   endTs: number;
   durationMinutes: number;
   eventCount: number;
+}
+
+/** Snapshot of learning detector metrics for diagnostics. */
+export interface LearningMetrics {
+  mode: DeveloperMode;
+  windowSeconds: number;
+  tabSwitchRate: number;
+  editRate: number;
+  uniqueFiles: number;
+  editToSwitchRatio: number;
 }
