@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  --city-bg: #0a0a1a;
+  --city-panel: #12122a;
+  --city-border: #2a2a4a;
+  --city-accent: #4ae08a;
+}
+
+body {
+  background: var(--city-bg);
+  color: #e0e0e8;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--city-panel);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--city-border);
+  border-radius: 3px;
+}
+
+@keyframes slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.15s ease-out;
+}
+
+@layer components {
+  .pixel-btn {
+    @apply font-pixel text-xs px-4 py-2 border-2 border-city-accent text-city-accent
+           hover:bg-city-accent hover:text-city-bg transition-colors duration-100;
+  }
+  .pixel-input {
+    @apply w-full bg-city-panel border-2 border-city-border px-3 py-2 text-sm
+           text-white placeholder-gray-500 focus:border-city-accent focus:outline-none;
+  }
+  .pixel-card {
+    @apply bg-city-panel border-2 border-city-border p-4;
+  }
+}
