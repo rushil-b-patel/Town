@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: codetown
+      POSTGRES_USER: codetown
+      POSTGRES_PASSWORD: codetown_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codetown"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  server:
+    build: ./server
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://codetown:codetown_dev@postgres:5432/codetown
+      PORT: "3000"
+      JWT_SECRET: "codetown-jwt-secret-change-in-prod"
+      API_KEYS: "dev-key-123:default-team"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "3001:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:3000"
+    depends_on:
+      - server
+
+volumes:
+  pgdata:
