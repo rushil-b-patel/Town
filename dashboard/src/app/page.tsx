@@ -1,22 +1,30 @@
 'use client';
 
-import { useAuth } from '@/lib/auth';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import React from 'react';
+import { useOfficeStore } from '@/store/officeStore';
+import LoginScreen from '@/components/LoginScreen';
+import OnboardingFlow from '@/components/OnboardingFlow';
+import OfficeCanvas from '@/components/OfficeCanvas';
+import OfficeHUD from '@/components/OfficeHUD';
+import ProfilePanel from '@/components/ProfilePanel';
 
 export default function Home() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const view = useOfficeStore((s) => s.view);
 
-  useEffect(() => {
-    if (!loading) {
-      router.replace(user ? '/city' : '/login');
-    }
-  }, [user, loading, router]);
+  if (view === 'login') {
+    return <LoginScreen />;
+  }
 
+  if (view === 'onboarding') {
+    return <OnboardingFlow />;
+  }
+
+  // Office view
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <p className="text-city-accent text-xs animate-pulse">Loading CodeTown...</p>
+    <div className="w-screen h-screen overflow-hidden bg-[#0f1117] relative">
+      <OfficeCanvas />
+      <OfficeHUD />
+      <ProfilePanel />
     </div>
   );
 }
